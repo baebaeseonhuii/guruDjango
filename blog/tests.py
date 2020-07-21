@@ -61,6 +61,13 @@ class TestView(TestCase):
         self.assertIn('Blog', navbar.text)
         self.assertIn('About me', navbar.text)
 
+    def check_right_side(self, soup):
+        category_card = soup.find('div', id='category-card')
+
+        self.assertIn('미분류 (1)', category_card.text)  # 미분류(1) 있어야함
+        self.assertIn('정치/사회 (1)', category_card.text)  # 정치/사회 (1) 있어야함
+
+
     def test_post_list_no_post(self):
         response = self.client.get('/blog/')
         self.assertEqual(response.status_code, 200)
@@ -104,17 +111,12 @@ class TestView(TestCase):
         self.assertEqual(post_000_read_more_btn['href'], post_000.get_absolute_url())
 
         #category card에서
-        category_card = body.find('div', id='category-card')
+        self.check_right_side(soup)
 
-        self.assertIn('미분류 (1)', category_card.text) # 미분류(1) 있어야함
-        self.assertIn('정치/사회 (1)', category_card.text) # 정치/사회 (1) 있어야함
-
-
-        main_div = body.find('div', id='main_div')
-        self.assertIn('정치/사회', main_div.text) # 첫번째 포스트는 '정치/사회' 있어야 함
-        self.assertIn('미분류', main_div.text) # 첫번째 포스트는 '미분류' 있어야 함
-
-
+        # main_div에는
+        main_div = soup.find('div', id='main_div')
+        self.assertIn('정치/사회', main_div.text)  # 첫번째 포스트는 '정치/사회' 있어야 함
+        self.assertIn('미분류', main_div.text)  # 첫번째 포스트는 '미분류' 있어야 함
 
 
 
@@ -123,6 +125,13 @@ class TestView(TestCase):
             title='The first post',
             content='Hello world',
             author=self.author_000,
+        )
+
+        post_000 = create_post(
+            title='The second post',
+            content='Second Second Second',
+            author=self.author_000,
+            category=create_category(name='정치/사회')
         )
 
         self.assertGreater(Post.objects.count(), 0)
@@ -146,3 +155,5 @@ class TestView(TestCase):
         self.assertIn(post_000.author.username, main_div.text)
 
         self.assertIn(post_000.content, main_div.text)
+
+        self.check_right_side(soup)
