@@ -44,7 +44,11 @@ class PostListByCategory(ListView):
 
     def get_queryset(self):
         slug = self.kwargs['slug']
-        category = Category.objects.get(slug=slug)
+
+        if slug == '_none':
+            category = None
+        else:
+            category = Category.objects.get(slug=slug)
 
         return Post.objects.filter(category=category).order_by('-created')
 
@@ -54,7 +58,12 @@ class PostListByCategory(ListView):
         context['posts_without_category'] = Post.objects.filter(category=None).count()
 
         slug = self.kwargs['slug']
-        category = Category.objects.get(slug=slug)
+
+        if slug == '_none':
+            context['category'] = '미분류'
+        else:
+            category = Category.objects.get(slug=slug)
+            context['category'] = category
 
         #context['title'] = 'Blog - {}'.format(category.name)
 
